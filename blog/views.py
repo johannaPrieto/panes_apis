@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect
 from .models import Recipe, Category #importar el modelo
 from datetime import datetime
-from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.auth import authenticate, login, logout
 
 
 def publicaciones(request):
@@ -95,9 +94,8 @@ def api_recipe_detail(request, id):
 
 def api_json(request):
     return render(request, 'blog/api.html')
-from django.contrib.auth import authenticate, login
+
 from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import render, redirect
 
 @login_required
 def editar_recipe(request, id):
@@ -162,6 +160,11 @@ def custom_login(request):
 
     form = AuthenticationForm(request)
     return render(request, "registration/login.html", {"form": form, "next": next_url})
+
+
+def custom_logout(request):
+    logout(request)
+    return redirect('publicaciones')
 
 
 @login_required

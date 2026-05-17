@@ -12,7 +12,7 @@ urlpatterns = [
 
    # AUTH
    path('login/', views.custom_login, name='login'),
-   path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+   path('logout/', views.custom_logout, name='logout'),
 
    # API
    path('api/recipes/', views.api_recipes, name='api_recipes'),
