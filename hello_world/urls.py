@@ -19,13 +19,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
 
 from hello_world.core import views as core_views
 
 urlpatterns = [
-    path("", core_views.index),
+    #path("", core_views.index),
     path("admin/", admin.site.urls),
     path("__reload__/", include("django_browser_reload.urls")),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('accounts/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('accounts/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('', include('blog.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="{% static 'blog/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🍞 Panes Mexicanos
+        </div>
+
+        <div class="nav-links">
+
+            {% if user.is_authenticated %}
+
+                <span class="user-welcome">
+                    Hola, {{ user.username }}
+                </span>
+
+                <a href="{% url 'crear_recipe' %}" class="nav-btn">
+                    ➕ Nueva receta
+                </a>
+
+                <a href="{% url 'logout' %}" class="nav-btn">
+                    🚪 Cerrar sesión
+                </a>
+
+            {% else %}
+
+                <a href="{% url 'login' %}" class="nav-btn">
+                    🔑 Iniciar sesión
+                </a>
+
+            {% endif %}
+
+            <a href="{% url 'api_recipes' %}" class="nav-btn secondary">
+                ⚙️ API JS
+            </a>
+
+            <a href="{% url 'json_api' %}" class="nav-btn secondary">
+                📥 Load Data
+            </a>
+
+        </div>
+
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+
+            <div class="login-container" style="max-width:480px; background: rgba(255,255,255,0.02); padding:28px; border-radius:8px;">
+                <h2>Iniciar Sesión</h2>
+
+                {% if error %}
+                    <div class="error">
+                        <p>{{ error }}</p>
+                    </div>
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="error">
+                        {% for err in form.non_field_errors %}
+                            <p>{{ err }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    {% if next %}
+                        <input type="hidden" name="next" value="{{ next }}">
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="{{ form.username.id_for_label }}">Usuario:</label>
+                        {{ form.username }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.password.id_for_label }}">Contraseña:</label>
+                        {{ form.password }}
+                    </div>
+
+                    <button type="submit" class="btn-primary">Iniciar Sesión</button>
+                </form>
+
+                <p style="margin-top:10px;"><a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a></p>
+                <p><a href="{% url 'publicaciones' %}">Volver a inicio</a></p>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>

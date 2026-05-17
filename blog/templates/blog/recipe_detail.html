@@ -1,0 +1,76 @@
+{% load static %}
+{% load comments_xtd %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>{{ recipe.titulo }}</title>
+   <link rel="stylesheet" href="{% static 'blog/style.css' %}">
+</head>
+<body>
+   <main class="detail-page">
+       <section class="detail-hero">
+           {% if recipe.imagen %}
+               <img class="detail-image" src="{{ recipe.imagen.url }}" alt="{{ recipe.titulo }}">
+           {% endif %}
+           <div class="detail-hero-overlay">
+               <div class="detail-badges">
+                   {% if recipe.categoria %}
+                       <span class="badge-detail">{{ recipe.categoria.name }}</span>
+                   {% endif %}
+                   <span class="badge-detail badge-type">{{ recipe.get_tipo_display }}</span>
+               </div>
+               <h1>{{ recipe.titulo }}</h1>
+               <p class="detail-subtitle">{{ recipe.descripcion }}</p>
+               <div class="detail-meta">
+                   <span>📍 {{ recipe.zona|default:'Todo México' }}</span>
+                   <span>🗓 {{ recipe.fecha|date:"d M Y" }}</span>
+                   <span>👤 {{ recipe.autor.username }}</span>
+               </div>
+               <div class="detail-actions">
+                   <a href="{% url 'publicaciones' %}" class="btn-secondary-alt">Volver a las recetas</a>
+                   {% if user.is_authenticated and recipe.autor == user or user.is_superuser %}
+                       <a href="{% url 'editar_recipe' recipe.id %}" class="btn-primary">Editar receta</a>
+                   {% endif %}
+               </div>
+           </div>
+       </section>
+
+       <section class="detail-content">
+           <div class="detail-grid">
+               <article class="detail-block">
+                   <h2>Ingredientes</h2>
+                   <div class="ingredients-box">
+                       {% for item in recipe.ingredientes.splitlines %}
+                           {% if item %}
+                               <div class="ingredient-row">• {{ item }}</div>
+                           {% endif %}
+                       {% empty %}
+                           <p>No hay ingredientes registrados.</p>
+                       {% endfor %}
+                   </div>
+               </article>
+
+               <article class="detail-block">
+                   <h2>Preparación</h2>
+                   <ol class="instructions-list">
+                       {% for step in recipe.instrucciones.splitlines %}
+                           {% if step %}
+                               <li>{{ step }}</li>
+                           {% endif %}
+                       {% empty %}
+                           <p>No hay instrucciones registradas.</p>
+                       {% endfor %}
+                   </ol>
+               </article>
+           </div>
+
+           <section class="comments-panel">
+               <h2>Comentarios</h2>
+               {% render_xtdcomment_tree for recipe %}
+           </section>
+       </section>
+   </main>
+</body>
+</html>

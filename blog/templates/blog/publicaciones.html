@@ -1,0 +1,291 @@
+{% load static %}
+{% load comments_xtd %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Panes Mexicanos</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'blog/style.css' %}">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🍞 Panes Mexicanos
+        </div>
+
+        <div class="nav-links">
+
+            {% if user.is_authenticated %}
+
+                <span class="user-welcome">
+                    Hola, {{ user.username }}
+                </span>
+
+                <a href="{% url 'crear_recipe' %}" class="nav-btn">
+                    ➕ Nueva receta
+                </a>
+
+                <a href="{% url 'logout' %}" class="nav-btn">
+                    🚪 Cerrar sesión
+                </a>
+
+            {% else %}
+
+                <a href="{% url 'login' %}" class="nav-btn">
+                    🔑 Iniciar sesión
+                </a>
+
+            {% endif %}
+
+            <a href="{% url 'api_recipes' %}" class="nav-btn secondary">
+                ⚙️ API JS
+            </a>
+
+            <a href="{% url 'json_api' %}" class="nav-btn secondary">
+                📥 Load Data
+            </a>
+
+        </div>
+
+    </nav>
+
+    <!-- =========================
+         HERO SECTION
+    ========================== -->
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <span class="badge">
+                ● RECETAS AUTÉNTICAS
+            </span>
+
+            <h1>
+                Panes <br>
+                <span>Mexicanos</span>
+            </h1>
+
+            <p>
+                Descubre las recetas tradicionales que han pasado
+                de generación en generación.
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="#recetas" class="btn-primary">
+                    Explorar recetas →
+                </a>
+
+                <a href="#categorias" class="btn-secondary">
+                    Nuestra tradición
+                </a>
+
+            </div>
+
+            <div class="stats">
+
+                <div>
+                    <h2>50+</h2>
+                    <p>RECETAS</p>
+                </div>
+
+                <div>
+                    <h2>32</h2>
+                    <p>ESTADOS</p>
+                </div>
+
+                <div>
+                    <h2>500+</h2>
+                    <p>AÑOS</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+            
+  
+
+    <!-- =========================
+         RECETAS
+    ========================== -->
+
+    <section class="recipes-section" id="recetas">
+
+        <div class="recipes-header">
+
+            <div>
+
+                <p class="section-subtitle">
+                    RECETARIO
+                </p>
+
+                <h2>
+                    Nuestras Recetas
+                </h2>
+
+            </div>
+
+            <input
+                type="text"
+                placeholder="Buscar receta..."
+                class="search-input"
+            >
+
+        </div>
+
+        <div class="recipes-grid">
+
+            {% for recipe in recipes %}
+
+                <div class="recipe-card">
+
+                    {% if recipe.imagen %}
+                        <img src="{{ recipe.imagen.url }}" alt="{{ recipe.titulo }}">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=1200&auto=format&fit=crop" alt="Pan mexicano">
+                    {% endif %}
+
+                    <div class="recipe-content" data-id="{{ recipe.id }}">
+
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="recipe-type">{{ recipe.get_tipo_display }}</span>
+                            <button class="fav-btn" aria-label="Favorito">♡</button>
+                        </div>
+
+                        <h3>
+                            <a href="{% url 'recipe_detail' recipe.id %}">
+                                {{ recipe.titulo }}
+                            </a>
+                        </h3>
+
+                        <p class="short-desc">{{ recipe.descripcion|truncatewords:20 }}</p>
+
+                        <div class="meta-row" style="margin:12px 0; display:flex; gap:12px; align-items:center;">
+                            <small class="meta-location">📍 {% if recipe.zona %}{{ recipe.zona }}{% elif recipe.categoria %}{{ recipe.categoria.name }}{% else %}Todo México{% endif %}</small>
+                            <small class="meta-time">⏱ 2 horas</small>
+                            <small class="meta-difficulty">🔥 Media</small>
+                            <a href="{% url 'recipe_detail' recipe.id %}" class="ver-mas">Ver más →</a>
+                        </div>
+
+                        <div class="full-recipe" style="display:none; margin-top:10px;">
+                            <p><strong>Descripción completa:</strong> {{ recipe.descripcion }}</p>
+                            <p><strong>Ingredientes:</strong> {{ recipe.ingredientes }}</p>
+                            <p><strong>Instrucciones:</strong> {{ recipe.instrucciones|linebreaksbr }}</p>
+
+                            <div class="comments-section" style="margin-top:18px;">
+                                <h4>Comentarios</h4>
+                                {% render_xtdcomment_tree for recipe %}
+                            </div>
+                        </div>
+
+                        <small>
+                            📅 {{ recipe.fecha|date:"d M Y" }}
+                        </small>
+
+                        {% if user.is_authenticated and recipe.autor == user %}
+                            <form method="post" action="{% url 'delete_recipe' recipe.id %}" style="display:inline; margin-left:10px;" class="delete-form">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-btn danger" onclick="event.stopPropagation();">🗑️ Eliminar</button>
+                            </form>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% empty %}
+
+                <div class="empty">
+
+                    <h2>No hay recetas aún 🥖</h2>
+                    <p>Agrega una deliciosa receta mexicana.</p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    <section class="tradition-section">
+        <div class="tradition-grid">
+            <div class="tradition-copy">
+                <p class="section-subtitle">NUESTRA TRADICIÓN</p>
+                <h2>El arte del pan mexicano es patrimonio vivo</h2>
+                <p class="tradition-text">Cada pieza de pan mexicano cuenta una historia. Desde los molcajetes que muelen el maíz hasta los hornos de leña que doran la concha, cada paso es un ritual que conecta nuestro presente con siglos de tradición.</p>
+
+                <div class="tradition-features">
+                    <div class="feature-card">
+                        <div class="feature-icon">🥖</div>
+                        <div>
+                            <h3>Ingredientes Naturales</h3>
+                            <p>Maíz, trigo, piloncillo, canela... ingredientes que la tierra mexicana nos regala.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔥</div>
+                        <div>
+                            <h3>Horno de Leña</h3>
+                            <p>El calor del fuego le da ese sabor ahumado e inconfundible a cada pieza.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">❤️</div>
+                        <div>
+                            <h3>Hecho con Amor</h3>
+                            <p>Cada panadero pone su corazón en cada masa que amasa y cada pieza que hornea.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tradition-image-card">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop" alt="Tradición panadera" />
+                <div class="tradition-stats">
+                    <strong>500+</strong>
+                    <span>Años de tradición panadera</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    // Toggle expansion of recipe card to show full content
+    document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('.recipe-card').forEach(function(card){
+            card.addEventListener('click', function(e){
+                // ignore clicks on links or buttons
+                if(e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('form')) return;
+                var content = card.querySelector('.full-recipe');
+                if(content){
+                    if(content.style.display === 'none' || !content.style.display){
+                        content.style.display = 'block';
+                    } else {
+                        content.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

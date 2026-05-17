@@ -29,10 +29,18 @@ DEBUG = config("DEBUG", default=True)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
+
 if 'CODESPACE_NAME' in os.environ:
     codespace_name = config("CODESPACE_NAME")
     codespace_domain = config("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN")
     CSRF_TRUSTED_ORIGINS = [f'https://{codespace_name}-8000.{codespace_domain}']
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://localhost:8000',
+        'http://localhost:8000',
+        'https://127.0.0.1:8000',
+        'http://127.0.0.1:8000',
+    ]
 
 # Application definition
 
@@ -43,7 +51,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "django_browser_reload",
+    "blog",
+    "cloudinary_storage",
+    "cloudinary",
+    "django_comments_xtd",
+    "django_comments",
 ]
 
 MIDDLEWARE = [
@@ -56,6 +70,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
+
+
 
 X_FRAME_OPTIONS = "ALLOW-FROM preview.app.github.dev"
 
@@ -113,7 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es"
 
 TIME_ZONE = "UTC"
 
@@ -135,8 +151,38 @@ STATIC_ROOT = BASE_DIR / "hello_world" / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "hello_world" / "media"
 
+# Cloudinary settings
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from decouple import config
 
-# Default primary key field type
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+}
+try:
+    # Only configure Cloudinary if credentials are present
+    if CLOUDINARY_STORAGE.get('API_KEY') and CLOUDINARY_STORAGE.get('API_SECRET') and CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+        cloudinary.config(**CLOUDINARY_STORAGE)
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    else:
+        # Fallback to local storage for development when Cloudinary is not configured
+        DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+except Exception:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# Comments settings
+COMMENTS_XTD_MAX_THREAD_LEVEL = 2
+COMMENTS_XTD_CONFIRM_EMAIL = False  # Para desarrollo, sin confirmación de email
+
+# Use a fixed Site ID so auth views do not fail looking up the current site by request host.
+SITE_ID = 1
+
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Autenticación
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
